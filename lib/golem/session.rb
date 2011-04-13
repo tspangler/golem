@@ -24,7 +24,31 @@ module Golem
           log "server disconnect: #{packet.message}"
           EM.stop
         end
+        
+        # If there's a player coming into view, let us know
+        if packet.kind == :named_entity_spawn
+          x = packet.x.humanize
+          y = packet.y.humanize
+          z = packet.z.humanize
+          carrying = ITEMS[packet.current_item].nil? ? 'nothing' : 'a ' + ITEMS[packet.current_item].to_s.gsub(/_/, ' ')
+          
+          # Send the client a bright green (ASCII 167) alert
+          tell_client "\xC2\xA7a" + '[' + x.to_s + ', ' + y.to_s + ', ' + z.to_s + '] A wild ' + packet.name + ' appears carrying ' + carrying + '!'
+        end
+        
+        # Wolf alert!
+        if packet.kind == :mob_spawn && packet.type == 95
+          puts packet.inspect
+          
+          x = packet.x.humanize
+          y = packet.y.humanize
+          z = packet.z.humanize
 
+          owner = packet.mob_data[0].empty? ? 'Untamed' : packet.mob_data[0].to_s + '\'s'
+
+          tell_client "\xC2\xA7a" + owner + ' wolf spotted at ' + x.to_s + ', ' + y.to_s + ', ' + z.to_s + '!'
+        end
+          
         handle packet
 
         if current_action

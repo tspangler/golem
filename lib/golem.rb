@@ -63,6 +63,10 @@ module Golem
     def in_degrees
       self * 180 / Math::PI
     end
+    
+    def humanize
+      self / 32
+    end
   end
 
 end

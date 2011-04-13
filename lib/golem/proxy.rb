@@ -134,6 +134,17 @@ module Golem
         @fastdig = false
       when /\/stop/
         clear_current_action
+        
+      when /\/n (.+)/
+        add_note($1)
+        tell_client "\xC2\xA76Created note #{$1} at coords #{state.coords.inspect}"
+
+      when /\/s/
+        show_notes
+        
+      when /\/clock/
+        tell_client "\xC2\xA7dSystem time is #{Time.now.strftime('%R %p')}. Go to bed!"
+        
       else
         return false
       end
@@ -161,7 +172,7 @@ module Golem
     end
 
     def tell_client(msg)
-      send_server_packet :chat, "<proxy> #{msg}"
+      send_server_packet :chat, msg
     end
 
     def fly_to(x, y, z)
@@ -178,6 +189,22 @@ module Golem
       packet = packet_class.new(*values)
       debug "<-- client  #{packet.inspect}"
       client.send_data packet.encode
+    end
+    
+private
+    def add_note(note)
+      # Open the right file
+      # Filename format is #{username}_#{server}
+
+      File.open('notes', 'a') do |f|
+        f.puts "#{state.coords.inspect}: #{note}"
+      end
+    end
+    
+    def show_notes
+      File.open('notes', 'r').each_line do |l|
+        tell_client "\xC2\xA76#{l}"
+      end
     end
 
   end
